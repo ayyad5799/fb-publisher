@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0b14">
+<title>ناشر فيسبوك</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0b14;--c1:#111220;--c2:#181929;--border:rgba(255,255,255,.07);
+  --fb:#1877F2;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;
+  --text:#dde0f0;--muted:rgba(221,224,240,.42);--r:14px;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Cairo',sans-serif;overflow-x:hidden}
+body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
+
+/* Ambient glow */
+body::before{content:'';position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 70% 40% at 15% 0%,rgba(24,119,242,.1) 0%,transparent 55%),
+             radial-gradient(ellipse 50% 35% at 85% 100%,rgba(34,197,94,.06) 0%,transparent 55%);z-index:0}
+
+/* ── Bottom nav ── */
+.bnav{position:fixed;bottom:0;left:0;right:0;z-index:90;
+  background:rgba(10,11,20,.96);backdrop-filter:blur(18px);
+  border-top:1px solid var(--border);
+  display:flex;padding-bottom:env(safe-area-inset-bottom)}
+.nb{flex:1;border:none;background:none;display:flex;flex-direction:column;
+  align-items:center;padding:10px 4px;cursor:pointer;color:var(--muted);
+  font-family:'Cairo',sans-serif;font-size:10px;font-weight:700;gap:2px;transition:color .15s}
+.nb .ic{font-size:22px;line-height:1}
+.nb.on{color:var(--fb)}
+.nb.on .ic{filter:drop-shadow(0 0 8px rgba(24,119,242,.5))}
+
+/* ── Screens ── */
+.scr{display:none;padding:14px 14px 0;position:relative;z-index:1}
+.scr.on{display:block;animation:fu .2s ease}
+@keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Top bar ── */
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-top:6px}
+.top h1{font-size:20px;font-weight:900;color:#fff}
+.top h1 span{color:var(--fb)}
+.top small{font-size:11px;color:var(--muted);display:block;margin-top:1px}
+
+/* ── Card ── */
+.card{background:var(--c1);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px}
+.clbl{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}
+
+/* ── Stats ── */
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px}
+.sbox{background:var(--c1);border:1px solid var(--border);border-radius:12px;padding:13px;position:relative;overflow:hidden}
+.sbox::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.sbox.b::before{background:var(--fb)}.sbox.g::before{background:var(--green)}
+.sbox.a::before{background:var(--amber)}.sbox.r::before{background:var(--red)}
+.slbl{font-size:10px;color:var(--muted);margin-bottom:5px;font-weight:600}
+.sval{font-size:28px;font-weight:900;color:#fff;line-height:1}
+.ssub{font-size:10px;margin-top:3px}
+.sbox.b .ssub{color:var(--fb)}.sbox.g .ssub{color:var(--green)}
+.sbox.a .ssub{color:var(--amber)}.sbox.r .ssub{color:var(--red)}
+
+/* ── Buttons ── */
+.btn{display:flex;align-items:center;justify-content:center;gap:7px;
+  width:100%;padding:13px;border-radius:12px;border:none;cursor:pointer;
+  font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;
+  margin-bottom:8px;transition:opacity .15s,transform .1s;user-select:none}
+.btn:active{transform:scale(.97);opacity:.85}
+.btn-p{background:var(--fb);color:#fff;box-shadow:0 4px 18px rgba(24,119,242,.28)}
+.btn-g{background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.22)}
+.btn-ghost{background:var(--c2);color:var(--text);border:1px solid var(--border)}
+.btn-r{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+.btn-sm{padding:8px 14px;font-size:12px;border-radius:9px;width:auto;margin:0}
+.btn:disabled{opacity:.35;pointer-events:none}
+.btn-row{display:flex;gap:8px}
+.btn-row .btn{flex:1}
+
+/* ── Forms ── */
+.fg{margin-bottom:11px}
+.fl{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
+.fl em{color:var(--red);font-style:normal}
+.fc{width:100%;background:var(--c2);border:1.5px solid var(--border);
+  border-radius:10px;padding:12px 13px;color:var(--text);
+  font-family:'Cairo',sans-serif;font-size:14px;outline:none;
+  transition:border-color .15s;-webkit-appearance:none}
+.fc:focus{border-color:var(--fb)}
+.fc::placeholder{color:var(--muted)}
+select.fc{cursor:pointer}
+.fhint{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5}
+
+/* ── Page card ── */
+.pcard{background:var(--c1);border:1px solid var(--border);border-radius:var(--r);padding:13px;margin-bottom:9px}
+.pcard.act{border-color:rgba(24,119,242,.3)}
+.ptop{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:9px}
+.pname{font-size:15px;font-weight:700;color:#fff}
+.ptopic{font-size:12px;color:var(--muted);margin-top:1px}
+.badge{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap}
+.bon{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2)}
+.boff{background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.2)}
+.ptimes{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:9px}
+.tchip{background:rgba(24,119,242,.1);color:var(--fb);border:1px solid rgba(24,119,242,.2);
+  padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;font-family:monospace}
+.pmeta{font-size:11px;color:var(--muted);line-height:1.9;margin-bottom:10px}
+.pmeta b{color:var(--text)}
+.pacts{display:flex;gap:7px}
+
+/* ── Countdown ── */
+.cdchip{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.18);
+  border-radius:12px;padding:10px 13px;display:flex;align-items:center;
+  gap:10px;margin-bottom:10px}
+.cdlbl{font-size:10px;color:var(--muted);font-weight:600}
+.cdval{font-size:22px;font-weight:900;color:var(--green);font-family:monospace;letter-spacing:1px}
+
+/* ── Timeline ── */
+.tli{display:flex;align-items:center;gap:11px;padding:12px 0;border-bottom:1px solid var(--border)}
+.tli:last-child{border:none}
+.tltime{font-family:monospace;font-size:16px;font-weight:700;color:var(--fb);min-width:48px}
+.tli-info{flex:1}
+.tli-name{font-size:13px;font-weight:700;color:#fff}
+.tli-next{font-size:11px;color:var(--green);margin-top:1px}
+
+/* ── Log items ── */
+.litem{padding:10px 0;border-bottom:1px solid var(--border)}
+.litem:last-child{border:none}
+.ltop{display:flex;justify-content:space-between;margin-bottom:3px}
+.lbadge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px}
+.lbadge.success{background:rgba(34,197,94,.1);color:var(--green)}
+.lbadge.error{background:rgba(239,68,68,.1);color:var(--red)}
+.lbadge.info{background:rgba(24,119,242,.1);color:var(--fb)}
+.ltime{font-size:10px;color:var(--muted)}
+.lpage{font-size:11px;color:var(--muted);margin-bottom:2px}
+.lmsg{font-size:12px;color:var(--text);line-height:1.5}
+
+/* ── Alert ── */
+.alert{padding:11px 13px;border-radius:10px;font-size:12px;line-height:1.7;margin-bottom:10px}
+.ai{background:rgba(24,119,242,.07);border:1px solid rgba(24,119,242,.18);color:#8ab4f8}
+.aw{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.18);color:var(--amber)}
+.ag{background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.18);color:var(--green)}
+
+/* ── Modal (bottom sheet) ── */
+.moverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);
+  backdrop-filter:blur(5px);z-index:200;align-items:flex-end;justify-content:center}
+.moverlay.open{display:flex}
+.modal{background:var(--c1);border:1px solid rgba(255,255,255,.1);
+  border-radius:20px 20px 0 0;padding:18px 14px;
+  padding-bottom:calc(18px + env(safe-area-inset-bottom));
+  width:100%;max-width:560px;max-height:92vh;overflow-y:auto;
+  animation:su .25s cubic-bezier(.34,1.2,.64,1)}
+@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.mhandle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
+.mtitle{font-size:17px;font-weight:900;color:#fff;margin-bottom:16px}
+
+/* ── Post box ── */
+.postbox{background:var(--c2);border:1.5px solid var(--border);border-radius:12px;
+  padding:13px;font-size:14px;line-height:1.9;color:var(--text);
+  min-height:100px;white-space:pre-wrap;word-break:break-word;margin-bottom:10px}
+
+/* ── Spinner ── */
+.spin{display:inline-block;width:14px;height:14px;
+  border:2px solid rgba(255,255,255,.25);border-top-color:#fff;
+  border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:5px;margin-bottom:11px;overflow-x:auto;padding-bottom:2px}
+.tabs::-webkit-scrollbar{display:none}
+.tb{padding:6px 13px;border-radius:20px;border:1px solid var(--border);
+  background:var(--c2);color:var(--muted);font-family:'Cairo',sans-serif;
+  font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .15s}
+.tb.on{background:var(--fb);color:#fff;border-color:var(--fb)}
+
+/* ── Empty ── */
+.empty{text-align:center;padding:28px 14px;color:var(--muted)}
+.empty .ei{font-size:34px;margin-bottom:9px}
+.empty p{font-size:13px;line-height:1.6}
+
+/* ── Toast ── */
+#toast{position:fixed;bottom:calc(72px + env(safe-area-inset-bottom));
+  left:50%;transform:translateX(-50%) translateY(12px);opacity:0;
+  background:rgba(15,16,26,.96);border:1px solid var(--border);
+  color:var(--text);padding:9px 18px;border-radius:22px;
+  font-size:13px;font-weight:700;z-index:999;white-space:nowrap;
+  box-shadow:0 6px 24px rgba(0,0,0,.5);transition:all .3s cubic-bezier(.34,1.2,.64,1);
+  pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HOME ═══════════════ -->
+<div class="scr on" id="s-home">
+  <div class="top">
+    <div><h1>📘 <span>ناشر</span> فيسبوك</h1><small>النشر التلقائي الذكي</small></div>
+    <div style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);
+      border-radius:8px;padding:6px 10px;font-size:11px;color:var(--green);font-weight:700">
+      <span style="display:inline-block;width:6px;height:6px;border-radius:50%;
+        background:var(--green);margin-left:5px;vertical-align:middle;
+        animation:pulse 2s infinite"></span>شغّال
+    </div>
+  </div>
+  <style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}</style>
+
+  <div class="sgrid">
+    <div class="sbox b"><div class="slbl">الصفحات</div><div class="sval" id="h-pages">—</div><div class="ssub">نشطة</div></div>
+    <div class="sbox g"><div class="slbl">اليوم</div><div class="sval" id="h-today">—</div><div class="ssub">نُشرت ✓</div></div>
+    <div class="sbox a"><div class="slbl">الإجمالي</div><div class="sval" id="h-total">—</div><div class="ssub">كل الوقت</div></div>
+    <div class="sbox r"><div class="slbl">أخطاء</div><div class="sval" id="h-errors">—</div><div class="ssub">مراجعة</div></div>
+  </div>
+
+  <div class="cdchip">
+    <div style="font-size:24px">⏱️</div>
+    <div><div class="cdlbl">النشر القادم بعد</div><div class="cdval" id="h-cd">--:--:--</div></div>
+  </div>
+
+  <button class="btn btn-p" onclick="showModal()">➕ إضافة صفحة جديدة</button>
+  <button class="btn btn-g" id="btn-all" onclick="runAll()">⚡ نشر الآن على كل الصفحات</button>
+
+  <div class="card">
+    <div class="clbl">📰 آخر نشاط</div>
+    <div id="h-recent"><div class="empty"><div class="ei">📭</div><p>لا يوجد نشاط بعد</p></div></div>
+  </div>
+</div>
+
+<!-- ═══════════════ PAGES ═══════════════ -->
+<div class="scr" id="s-pages">
+  <div class="top">
+    <div><h1>الصفحات</h1><small>إدارة صفحاتك</small></div>
+    <button class="btn btn-p btn-sm" onclick="showModal()">➕ إضافة</button>
+  </div>
+  <div id="pages-list"><div class="empty"><div class="ei">📄</div><p>لا توجد صفحات<br>اضغط إضافة لتبدأ</p></div></div>
+</div>
+
+<!-- ═══════════════ SCHEDULE ═══════════════ -->
+<div class="scr" id="s-schedule">
+  <div class="top"><div><h1>الجدولة</h1><small>مواعيد النشر اليومية</small></div></div>
+  <div class="cdchip">
+    <div style="font-size:24px">⏱️</div>
+    <div><div class="cdlbl">النشر القادم</div><div class="cdval" id="sc-cd">--:--:--</div></div>
+  </div>
+  <div class="card">
+    <div class="clbl">📅 الجدول اليومي</div>
+    <div id="sc-tl"><div class="empty"><div class="ei">⏰</div><p>لا توجد مواعيد<br>أضف صفحات أولاً</p></div></div>
+  </div>
+</div>
+
+<!-- ═══════════════ GENERATE ═══════════════ -->
+<div class="scr" id="s-generate">
+  <div class="top"><div><h1>✨ توليد</h1><small>بوست بـ Claude AI</small></div></div>
+
+  <div class="card">
+    <div class="fg">
+      <label class="fl">الصفحة</label>
+      <select class="fc" id="g-page"></select>
+    </div>
+    <div class="fg">
+      <label class="fl">الموضوع <em>*</em></label>
+      <input type="text" class="fc" id="g-topic" placeholder="طبخ، تسويق، رياضة...">
+    </div>
+    <div class="fg">
+      <label class="fl">نوع البوست</label>
+      <select class="fc" id="g-type">
+        <option value="tip">💡 نصيحة مفيدة</option>
+        <option value="fact">🔍 معلومة مثيرة</option>
+        <option value="motivational">🔥 تحفيزي</option>
+        <option value="question">💬 سؤال تفاعلي</option>
+        <option value="story">📖 قصة قصيرة</option>
+      </select>
+    </div>
+    <button class="btn btn-p" id="gen-btn" onclick="doGenerate()">✨ توليد بوست</button>
+  </div>
+
+  <div id="gen-out" style="display:none">
+    <div class="clbl" style="padding:0 2px 8px">معاينة البوست</div>
+    <div class="postbox" id="gen-txt"></div>
+    <button class="btn btn-g" id="gen-pub" onclick="pubGenerated()">📤 نشر على الصفحة المختارة</button>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="doGenerate()">🔄 إعادة</button>
+      <button class="btn btn-ghost" onclick="doCopy()">📋 نسخ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SETTINGS ═══════════════ -->
+<div class="scr" id="s-settings">
+  <div class="top"><div><h1>⚙️ الإعدادات</h1></div></div>
+
+  <div class="card">
+    <div class="clbl">🤖 Claude AI Key</div>
+    <div class="alert ai">💡 احصل على مفتاح مجاني من <strong>console.anthropic.com</strong> ← API Keys</div>
+    <div class="fg">
+      <input type="password" class="fc" id="st-key" placeholder="sk-ant-api03-..." autocomplete="off">
+      <div class="fhint" id="st-status">لم يُدخل مفتاح بعد</div>
+    </div>
+    <button class="btn btn-p" onclick="saveKey()">💾 حفظ المفتاح</button>
+  </div>
+
+  <div class="card">
+    <div class="clbl">📘 كيف أجيب Facebook Token؟</div>
+    <div class="alert ai">
+      <div>
+        1️⃣ اذهب إلى <strong>developers.facebook.com</strong><br>
+        2️⃣ أنشئ تطبيق ← Business<br>
+        3️⃣ Graph API Explorer ← اختر صفحتك<br>
+        4️⃣ Generate Token ← فعّل <strong>pages_manage_posts</strong><br>
+        5️⃣ انسخ الـ Token والـ Page ID
+      </div>
+    </div>
+    <div class="alert aw">⚠️ التوكن بينتهي بعد ساعتين. للنشر الدائم استخدم Long-Lived Token.</div>
+  </div>
+
+  <div class="card">
+    <div class="clbl">📋 سجلات النظام</div>
+    <div class="tabs">
+      <button class="tb on" onclick="filterLog('all',this)">الكل</button>
+      <button class="tb" onclick="filterLog('success',this)">✓ ناجح</button>
+      <button class="tb" onclick="filterLog('error',this)">✗ خطأ</button>
+      <button class="tb" onclick="filterLog('info',this)">ℹ معلومة</button>
+    </div>
+    <div id="logs-list"><div class="empty" style="padding:16px 0"><p>لا توجد سجلات</p></div></div>
+    <button class="btn btn-r btn-sm" style="width:100%;margin-top:10px" onclick="clearLogs()">🗑️ مسح السجلات</button>
+  </div>
+</div>
+
+<!-- ═══════════════ BOTTOM NAV ═══════════════ -->
+<nav class="bnav">
+  <button class="nb on" onclick="go('home',this)"><span class="ic">🏠</span>الرئيسية</button>
+  <button class="nb" onclick="go('pages',this)"><span class="ic">📄</span>الصفحات</button>
+  <button class="nb" onclick="go('schedule',this)"><span class="ic">📅</span>الجدولة</button>
+  <button class="nb" onclick="go('generate',this)"><span class="ic">✨</span>توليد</button>
+  <button class="nb" onclick="go('settings',this)"><span class="ic">⚙️</span>إعدادات</button>
+</nav>
+
+<!-- ═══════════════ ADD PAGE MODAL ═══════════════ -->
+<div class="moverlay" id="modal">
+  <div class="modal">
+    <div class="mhandle"></div>
+    <div class="mtitle">➕ إضافة صفحة فيسبوك</div>
+    <div class="fg"><label class="fl">اسم الصفحة <em>*</em></label><input type="text" class="fc" id="m-name" placeholder="مثال: مطبخ أم سمير"></div>
+    <div class="fg"><label class="fl">موضوع الصفحة <em>*</em></label><input type="text" class="fc" id="m-topic" placeholder="وصفات طبخ، تسويق رقمي..."><div class="fhint">سيستخدمه Claude لتوليد بوستات مناسبة تلقائياً</div></div>
+    <div class="fg"><label class="fl">Page ID <em>*</em></label><input type="text" class="fc" id="m-pid" placeholder="123456789012345" inputmode="numeric"><div class="fhint">من "نبذة عن الصفحة" على فيسبوك</div></div>
+    <div class="fg"><label class="fl">Access Token <em>*</em></label><input type="password" class="fc" id="m-tok" placeholder="EAABsbCS4..."></div>
+    <div class="fg"><label class="fl">نوع البوستات</label>
+      <select class="fc" id="m-type">
+        <option value="tip">💡 نصيحة</option><option value="fact">🔍 معلومة</option>
+        <option value="motivational">🔥 تحفيزي</option><option value="question">💬 سؤال تفاعلي</option>
+      </select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+      <div class="fg" style="margin:0"><label class="fl">وقت النشر الأول <em>*</em></label><input type="time" class="fc" id="m-t1" value="09:00"></div>
+      <div class="fg" style="margin:0"><label class="fl">وقت ثاني (اختياري)</label><input type="time" class="fc" id="m-t2"></div>
+    </div>
+    <br>
+    <button class="btn btn-p" onclick="addPage()">✅ إضافة الصفحة</button>
+    <button class="btn btn-ghost" onclick="hideModal()">إلغاء</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── API ─────────────────────────────────────────────────────────
+const api = {
+  get: url => fetch(url).then(r=>r.json()),
+  post: (url,d) => fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d||{})}).then(r=>r.json()),
+  del: url => fetch(url,{method:'DELETE'}).then(r=>r.json()),
+};
+
+// ── Toast ────────────────────────────────────────────────────────
+let _tt;
+function toast(msg,type=''){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className='show';
+  el.style.borderColor=type==='ok'?'rgba(34,197,94,.3)':type==='err'?'rgba(239,68,68,.3)':'rgba(255,255,255,.08)';
+  el.style.color=type==='ok'?'var(--green)':type==='err'?'var(--red)':'var(--text)';
+  clearTimeout(_tt);_tt=setTimeout(()=>el.className='',3000);
+}
+
+// ── Nav ──────────────────────────────────────────────────────────
+function go(name,btn){
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('s-'+name).classList.add('on');
+  btn.classList.add('on');
+  ({home:loadHome,pages:loadPages,schedule:loadSchedule,
+    generate:loadGenerate,settings:loadSettings})[name]?.();
+}
+
+// ── Countdown ─────────────────────────────────────────────────────
+let _pages=[];
+async function refreshPages(){_pages=await api.get('/api/pages');}
+refreshPages();setInterval(refreshPages,30000);
+
+function calcCD(){
+  const now=new Date();let near=null;
+  _pages.filter(p=>p.status==='active').forEach(p=>{
+    (p.times||[]).forEach(t=>{
+      const[h,m]=t.split(':'),nx=new Date();nx.setHours(+h,+m,0,0);
+      if(nx<=now)nx.setDate(nx.getDate()+1);
+      if(!near||nx<near)near=nx;
+    });
+  });
+  if(near){
+    const d=near-now,H=String(Math.floor(d/3600000)).padStart(2,'0'),
+      M=String(Math.floor(d%3600000/60000)).padStart(2,'0'),
+      S=String(Math.floor(d%60000/1000)).padStart(2,'0'),str=`${H}:${M}:${S}`;
+    ['h-cd','sc-cd'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=str;});
+  }
+}
+setInterval(calcCD,1000);calcCD();
+
+// ── Home ──────────────────────────────────────────────────────────
+async function loadHome(){
+  const[stats,logs]=await Promise.all([api.get('/api/stats'),api.get('/api/logs')]);
+  document.getElementById('h-pages').textContent=stats.active;
+  document.getElementById('h-today').textContent=stats.today;
+  document.getElementById('h-total').textContent=stats.total;
+  document.getElementById('h-errors').textContent=stats.errors;
+  const r=document.getElementById('h-recent');
+  if(!logs.length){r.innerHTML='<div class="empty"><div class="ei">📭</div><p>لا يوجد نشاط بعد</p></div>';return;}
+  r.innerHTML=logs.slice(0,4).map(l=>`
+    <div class="litem">
+      <div class="ltop"><span class="lbadge ${l.level}">${l.level==='success'?'✓':l.level==='error'?'✗':'ℹ'}</span>
+      <span class="ltime">${new Date(l.time).toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'})}</span></div>
+      <div class="lpage">${l.page}</div><div class="lmsg">${l.msg.substring(0,80)}</div>
+    </div>`).join('');
+}
+loadHome();
+
+// ── Pages ─────────────────────────────────────────────────────────
+async function loadPages(){
+  const pages=await api.get('/api/pages');
+  _pages=pages;
+  const el=document.getElementById('pages-list');
+  if(!pages.length){el.innerHTML='<div class="empty"><div class="ei">📄</div><p>لا توجد صفحات<br>اضغط إضافة لتبدأ</p></div>';return;}
+  el.innerHTML=pages.map(p=>`
+    <div class="pcard ${p.status==='active'?'act':''}">
+      <div class="ptop">
+        <div><div class="pname">${p.name}</div><div class="ptopic">📌 ${p.topic}</div></div>
+        <span class="badge ${p.status==='active'?'bon':'boff'}">${p.status==='active'?'● نشط':'⏸ موقف'}</span>
+      </div>
+      <div class="ptimes">${(p.times||[]).map(t=>`<span class="tchip">⏰ ${t}</span>`).join('')}</div>
+      <div class="pmeta">
+        📊 إجمالي: <b>${p.total||0}</b> · اليوم: <b>${p.today||0}</b><br>
+        🕒 آخر نشر: <b>${p.last_post?new Date(p.last_post).toLocaleString('ar',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'لم ينشر بعد'}</b>
+      </div>
+      <div class="pacts">
+        <button class="btn btn-g btn-sm" onclick="pubOne('${p.id}')">⚡ نشر</button>
+        <button class="btn btn-ghost btn-sm" onclick="togglePage('${p.id}')">${p.status==='active'?'⏸':'▶'}</button>
+        <button class="btn btn-r btn-sm" onclick="delPage('${p.id}','${p.name}')">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── Modal ─────────────────────────────────────────────────────────
+function showModal(){document.getElementById('modal').classList.add('open');}
+function hideModal(){document.getElementById('modal').classList.remove('open');}
+document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))hideModal();});
+
+async function addPage(){
+  const name=document.getElementById('m-name').value.trim(),
+    topic=document.getElementById('m-topic').value.trim(),
+    pid=document.getElementById('m-pid').value.trim(),
+    tok=document.getElementById('m-tok').value.trim(),
+    type=document.getElementById('m-type').value,
+    t1=document.getElementById('m-t1').value,
+    t2=document.getElementById('m-t2').value;
+  if(!name||!topic||!pid||!tok){toast('❌ املأ الحقول المطلوبة *','err');return;}
+  const res=await api.post('/api/pages',{name,topic,page_id:pid,token:tok,post_type:type,times:[t1,t2].filter(Boolean)});
+  if(res.ok){
+    hideModal();toast(`✅ تم إضافة "${name}"!`,'ok');
+    ['m-name','m-topic','m-pid','m-tok'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('m-t1').value='09:00';document.getElementById('m-t2').value='';
+    _pages=await api.get('/api/pages');loadPages();loadHome();
+  }else toast('❌ خطأ في الإضافة','err');
+}
+
+async function togglePage(id){
+  await api.post(`/api/pages/${id}/toggle`);
+  _pages=await api.get('/api/pages');loadPages();
+}
+
+async function delPage(id,name){
+  if(!confirm(`حذف "${name}"؟`))return;
+  await api.del(`/api/pages/${id}`);
+  _pages=await api.get('/api/pages');
+  toast(`تم حذف "${name}"`);loadPages();loadHome();
+}
+
+// ── Publish ───────────────────────────────────────────────────────
+async function pubOne(id){
+  const p=_pages.find(x=>x.id===id);
+  toast(`⏳ جاري النشر على "${p?.name||'الصفحة'}"...`);
+  await api.post(`/api/pages/${id}/publish`);
+  toast(`✅ تم!`,'ok');
+  _pages=await api.get('/api/pages');loadPages();loadHome();
+}
+
+async function runAll(){
+  const active=_pages.filter(p=>p.status==='active');
+  if(!active.length){toast('❌ لا توجد صفحات نشطة','err');return;}
+  const btn=document.getElementById('btn-all');
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span> جاري النشر...';
+  for(const p of active){await api.post(`/api/pages/${p.id}/publish`);await new Promise(r=>setTimeout(r,1500));}
+  btn.disabled=false;btn.innerHTML='⚡ نشر الآن على كل الصفحات';
+  toast(`✅ انتهى النشر على ${active.length} صفحات`,'ok');
+  _pages=await api.get('/api/pages');loadHome();
+}
+
+// ── Schedule ──────────────────────────────────────────────────────
+async function loadSchedule(){
+  const pages=(await api.get('/api/pages')).filter(p=>p.status==='active');
+  const tl=document.getElementById('sc-tl');
+  let slots=[];
+  pages.forEach(p=>(p.times||[]).forEach(t=>{
+    const[h,m]=t.split(':'),nx=new Date();nx.setHours(+h,+m,0,0);
+    if(nx<=new Date())nx.setDate(nx.getDate()+1);
+    slots.push({p,t,nx});
+  }));
+  slots.sort((a,b)=>a.nx-b.nx);
+  if(!slots.length){tl.innerHTML='<div class="empty"><div class="ei">⏰</div><p>لا توجد مواعيد</p></div>';return;}
+  const now=new Date();
+  tl.innerHTML=slots.map(s=>{
+    const d=Math.floor((s.nx-now)/60000),h=Math.floor(d/60),m=d%60;
+    const lbl=d<1?'الآن!':d<60?`بعد ${d} دقيقة`:`بعد ${h}س ${m}د`;
+    return`<div class="tli"><div class="tltime">${s.t}</div><div class="tli-info"><div class="tli-name">${s.p.name}</div><div class="tli-next">${lbl}</div></div><button class="btn btn-g btn-sm" onclick="pubOne('${s.p.id}')">⚡</button></div>`;
+  }).join('');
+}
+
+// ── Generate ──────────────────────────────────────────────────────
+async function loadGenerate(){
+  const pages=await api.get('/api/pages');
+  const sel=document.getElementById('g-page');
+  sel.innerHTML='<option value="">— بدون صفحة محددة —</option>'+
+    pages.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+}
+
+let _genTxt='',_genPageId='';
+async function doGenerate(){
+  let topic=document.getElementById('g-topic').value.trim();
+  const pageId=document.getElementById('g-page').value,
+    type=document.getElementById('g-type').value;
+  if(!topic&&pageId){const p=_pages.find(x=>x.id===pageId);if(p)topic=p.topic;}
+  if(!topic){toast('❌ أدخل الموضوع أولاً','err');return;}
+  const btn=document.getElementById('gen-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span> Claude يكتب...';
+  const res=await api.post('/api/generate',{topic,post_type:type,lang:'ar'});
+  _genTxt=res.text||'حدث خطأ';_genPageId=pageId;
+  document.getElementById('gen-txt').textContent=_genTxt;
+  document.getElementById('gen-txt').dataset.text=_genTxt;
+  document.getElementById('gen-out').style.display='block';
+  document.getElementById('gen-pub').disabled=!pageId;
+  btn.disabled=false;btn.innerHTML='✨ توليد بوست';
+}
+
+async function pubGenerated(){
+  if(!_genPageId||!_genTxt)return;
+  toast('📤 جاري النشر...');
+  await api.post(`/api/pages/${_genPageId}/publish`);
+  toast('✅ تم النشر!','ok');
+}
+
+function doCopy(){if(_genTxt)navigator.clipboard.writeText(_genTxt).then(()=>toast('📋 تم النسخ!'));}
+
+// ── Settings ──────────────────────────────────────────────────────
+async function loadSettings(){
+  const s=await api.get('/api/settings');
+  const st=document.getElementById('st-status');
+  if(s.has_key){st.textContent='✅ المفتاح محفوظ';st.style.color='var(--green)';}
+  else{st.textContent='❌ لم يُدخل مفتاح بعد';st.style.color='var(--red)';}
+  loadLogs('all');
+}
+
+async function saveKey(){
+  const key=document.getElementById('st-key').value.trim();
+  if(!key){toast('❌ أدخل المفتاح أولاً','err');return;}
+  await api.post('/api/settings',{anthropic_key:key});
+  toast('✅ تم حفظ المفتاح','ok');
+  document.getElementById('st-key').value='';
+  loadSettings();
+}
+
+let _logFilter='all';
+async function loadLogs(f){
+  if(f)_logFilter=f;
+  const url=_logFilter==='all'?'/api/logs':`/api/logs?level=${_logFilter}`;
+  const logs=await api.get(url);
+  const el=document.getElementById('logs-list');
+  if(!logs.length){el.innerHTML='<div class="empty" style="padding:14px 0"><p>لا توجد سجلات</p></div>';return;}
+  el.innerHTML=logs.slice(0,60).map(l=>`
+    <div class="litem">
+      <div class="ltop"><span class="lbadge ${l.level}">${l.level==='success'?'✓':l.level==='error'?'✗':'ℹ'} ${l.level}</span>
+      <span class="ltime">${new Date(l.time).toLocaleString('ar',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</span></div>
+      <div class="lpage">📄 ${l.page}</div><div class="lmsg">${l.msg}</div>
+    </div>`).join('');
+}
+
+function filterLog(f,btn){
+  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');loadLogs(f);
+}
+
+async function clearLogs(){
+  if(!confirm('مسح جميع السجلات؟'))return;
+  await api.del('/api/logs');toast('تم المسح');loadLogs('all');
+}
+</script>
+</body>
+</html>
