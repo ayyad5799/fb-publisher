@@ -32,7 +32,7 @@ os.makedirs(DATA_DIR, exist_ok=True)
 scheduler = BackgroundScheduler(timezone=pytz.timezone('Asia/Riyadh'))
 
 UNSPLASH_KEY = 'gZrefpx0NIcCATHYfGXq873vRehUuDMWEdZw0JH-rOY'
-VIDEO_LIBRARY_URL = 'https://tiklib2026.onrender.com'
+VIDEO_LIBRARY_URL = 'https://tiklib2026.up.railway.app'
 
 POST_TYPES = {
     # 📖 القرآن الكريم
