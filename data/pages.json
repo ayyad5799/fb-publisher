@@ -18,6 +18,20 @@
           "fri",
           "sat"
         ]
+      },
+      {
+        "time": "23:05",
+        "post_type": "👳 قصص الأنبياء",
+        "days": [
+          "sun",
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri",
+          "sat"
+        ],
+        "id": "s_20260407200414919459"
       }
     ],
     "personality": "spiritual",
