@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: fb-publisher
+    runtime: python
+    plan: starter            # $7/شهر — يبقى شغال دائماً (المجاني ينام ويوقف الجدولة)
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 300
+    disk:                    # يحفظ pages.json والتوكنات والجدولة بين إعادة التشغيل
+      name: data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DATA_DIR
+        value: /var/data
+      - key: APP_USER
+        value: admin
+      - key: APP_PASSWORD     # كلمة مرور الموقع — أدخلها من لوحة Render
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: UNSPLASH_KEY
+        sync: false
+      - key: DROPBOX_APP_KEY
+        sync: false
+      - key: DROPBOX_APP_SECRET
+        sync: false
+      - key: DROPBOX_REFRESH_TOKEN
+        sync: false
